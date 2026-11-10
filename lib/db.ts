@@ -50,8 +50,11 @@ if (!globalForUrls.inMemoryUrls) {
   globalForUrls.idCounter = 1;
 }
 
+let dbInitPromise: Promise<boolean> | null = null;
+
 /**
  * Initializes the database tables if they do not already exist.
+ * Cached to avoid redundant DDL executions on warm serverless functions.
  */
 export async function initDatabase(): Promise<boolean> {
   const sql = getDb();
@@ -60,38 +63,45 @@ export async function initDatabase(): Promise<boolean> {
     return false;
   }
 
-  try {
-    await sql`
-      CREATE TABLE IF NOT EXISTS urls (
-        id SERIAL PRIMARY KEY,
-        original_url TEXT NOT NULL,
-        slug VARCHAR(100) UNIQUE NOT NULL,
-        clicks INTEGER DEFAULT 0,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-      );
-    `;
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_urls_slug ON urls(slug);
-    `;
-    await sql`
-      CREATE TABLE IF NOT EXISTS settings (
-        key VARCHAR(50) PRIMARY KEY,
-        value TEXT NOT NULL,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-      );
-    `;
-    const defaultPin = (process.env.ADMIN_PIN || "123456").trim();
-    await sql`
-      INSERT INTO settings (key, value)
-      VALUES ('admin_pin', ${defaultPin})
-      ON CONFLICT (key) DO NOTHING;
-    `;
-    return true;
-  } catch (error) {
-    console.error("[DB_INIT_ERROR] Failed to initialize database tables:", error);
-    throw error;
-  }
+  if (dbInitPromise) return dbInitPromise;
+
+  dbInitPromise = (async () => {
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS urls (
+          id SERIAL PRIMARY KEY,
+          original_url TEXT NOT NULL,
+          slug VARCHAR(100) UNIQUE NOT NULL,
+          clicks INTEGER DEFAULT 0,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+      `;
+      await sql`
+        CREATE INDEX IF NOT EXISTS idx_urls_slug ON urls(slug);
+      `;
+      await sql`
+        CREATE TABLE IF NOT EXISTS settings (
+          key VARCHAR(50) PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+      `;
+      const defaultPin = (process.env.ADMIN_PIN || "123456").trim();
+      await sql`
+        INSERT INTO settings (key, value)
+        VALUES ('admin_pin', ${defaultPin})
+        ON CONFLICT (key) DO NOTHING;
+      `;
+      return true;
+    } catch (error) {
+      console.error("[DB_INIT_ERROR] Failed to initialize database tables:", error);
+      dbInitPromise = null;
+      throw error;
+    }
+  })();
+
+  return dbInitPromise;
 }
 
 /**
@@ -241,11 +251,12 @@ export async function incrementClicks(slug: string): Promise<void> {
     try {
       await sql`
         UPDATE urls
-        SET clicks = clicks + 1, updated_at = NOW()
+        SET clicks = COALESCE(clicks, 0) + 1, updated_at = NOW()
         WHERE LOWER(slug) = LOWER(${slug});
       `;
     } catch (err) {
       console.error("[DB_ERROR] Error incrementing click count in DB:", err);
+      throw err;
     }
     return;
   }
@@ -254,7 +265,7 @@ export async function incrementClicks(slug: string): Promise<void> {
     (u) => u.slug.toLowerCase() === slug.toLowerCase()
   );
   if (match) {
-    match.clicks += 1;
+    match.clicks = (match.clicks || 0) + 1;
     match.updated_at = new Date().toISOString();
   }
 }

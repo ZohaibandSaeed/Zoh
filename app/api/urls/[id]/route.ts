@@ -8,6 +8,8 @@ import {
   isReservedSlug,
 } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 interface RouteParams {
   params: {
     id: string;

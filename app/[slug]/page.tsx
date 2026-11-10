@@ -2,6 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { getUrlBySlug, incrementClicks } from "@/lib/db";
 import { sanitizeSlug, isReservedSlug } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 interface PageProps {
   params: {
     slug: string;
@@ -27,10 +30,12 @@ export default async function SlugRedirectPage({ params }: PageProps) {
     notFound();
   }
 
-  // Increment clicks in background
-  incrementClicks(cleanedSlug).catch((err) =>
-    console.error("Failed to increment clicks:", err)
-  );
+  // Increment click count in database and wait for it before redirecting
+  try {
+    await incrementClicks(cleanedSlug);
+  } catch (err) {
+    console.error("Failed to increment clicks:", err);
+  }
 
   // Redirect to destination
   redirect(record.original_url);

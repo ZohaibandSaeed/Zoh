@@ -14,8 +14,6 @@ import {
   Loader2,
   Globe,
   Settings,
-  AlertTriangle,
-  Database,
 } from "lucide-react";
 import { sanitizeSlug, isValidUrl, normalizeUrl, isReservedSlug } from "@/lib/validation";
 
@@ -34,20 +32,11 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [createdUrl, setCreatedUrl] = useState<CreatedUrlResult | null>(null);
   const [copied, setCopied] = useState(false);
-  const [dbStatus, setDbStatus] = useState<"checking" | "connected" | "disconnected">("checking");
 
   // App base URL for display
   const [displayHost, setDisplayHost] = useState("zinks.netlify.app");
 
   useEffect(() => {
-    // Check live database connection status
-    fetch("/api/db-status")
-      .then((res) => res.json())
-      .then((data) => {
-        setDbStatus(data.status === "CONNECTED" ? "connected" : "disconnected");
-      })
-      .catch(() => setDbStatus("disconnected"));
-
     if (typeof window !== "undefined") {
       // If running on netlify or localhost, adapt display domain
       const host = window.location.host;
@@ -168,24 +157,9 @@ export default function DashboardPage() {
       {/* Header section */}
       <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] sm:text-xs font-semibold border border-blue-200/60">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Shortener Studio</span>
-            </div>
-
-            {dbStatus === "connected" && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[11px] sm:text-xs font-semibold border border-emerald-200/60">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Neon DB Live</span>
-              </div>
-            )}
-            {dbStatus === "disconnected" && (
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[11px] sm:text-xs font-semibold border border-amber-200/60">
-                <AlertTriangle className="w-3 h-3 text-amber-500" />
-                <span>DB Not Connected in Netlify</span>
-              </div>
-            )}
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] sm:text-xs font-semibold border border-blue-200/60 mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Shortener Studio</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Create Custom Short Link
@@ -211,21 +185,6 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
-
-      {/* Disconnected Database Alert */}
-      {dbStatus === "disconnected" && (
-        <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-3 shadow-sm">
-          <Database className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-bold text-amber-900">Database Connection Required in Netlify</p>
-            <p className="mt-1 text-amber-800 leading-relaxed">
-              Your Neon Database URL is not detected by Netlify. To save links permanently to your database, add{" "}
-              <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono font-semibold">DATABASE_URL</code> in{" "}
-              <strong>Netlify Dashboard &rarr; Site configuration &rarr; Environment variables</strong>, then trigger a deploy.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Success Notification Banner */}
       {createdUrl && (

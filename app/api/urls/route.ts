@@ -12,6 +12,8 @@ import {
   isReservedSlug,
 } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/urls
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -40,7 +42,16 @@ export async function GET(request: Request) {
   // Fetch all URLs
   try {
     const urls = await getAllUrls();
-    return NextResponse.json({ urls });
+    return NextResponse.json(
+      { urls },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
   } catch (err: any) {
     return NextResponse.json(
       { error: err?.message || "Failed to fetch URLs" },

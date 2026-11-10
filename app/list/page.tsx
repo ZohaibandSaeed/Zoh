@@ -14,12 +14,14 @@ import {
   LogIn,
   Loader2,
   Globe2,
+  RefreshCw,
 } from "lucide-react";
 import { UrlRecord } from "@/lib/types";
 
 export default function PublicListPage() {
   const [urls, setUrls] = useState<UrlRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [copiedId, setCopiedId] = useState<number | null>(null);
   const [displayHost, setDisplayHost] = useState("zinks.netlify.app");
@@ -33,13 +35,19 @@ export default function PublicListPage() {
         setDisplayHost("zinks.netlify.app");
       }
     }
-    fetchPublicUrls();
+    fetchPublicUrls(true);
+
+    // Auto-refresh click counts when user returns to this tab
+    const onFocus = () => fetchPublicUrls(false);
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
-  const fetchPublicUrls = async () => {
+  const fetchPublicUrls = async (showSpinner = true) => {
     try {
-      setLoading(true);
-      const res = await fetch("/api/urls");
+      if (showSpinner) setLoading(true);
+      setIsRefreshing(true);
+      const res = await fetch("/api/urls", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setUrls(data.urls || []);
@@ -47,7 +55,8 @@ export default function PublicListPage() {
     } catch (err) {
       console.error("Failed to fetch public URLs:", err);
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -87,7 +96,17 @@ export default function PublicListPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <button
+            onClick={() => fetchPublicUrls(false)}
+            disabled={isRefreshing}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-sm transition-all disabled:opacity-60"
+            title="Refresh links and clicks"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 ${isRefreshing ? "animate-spin text-blue-600" : ""}`} />
+            <span>Refresh</span>
+          </button>
+
           <Link
             href="/login"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-sm transition-all"

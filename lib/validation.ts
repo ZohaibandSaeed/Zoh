@@ -13,7 +13,6 @@ export const RESERVED_SLUGS = new Set([
   "_next",
   "public",
   "static",
-  "setup-db",
 ]);
 
 /**

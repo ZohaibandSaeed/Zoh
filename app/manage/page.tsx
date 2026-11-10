@@ -18,6 +18,7 @@ import {
   Sparkles,
   KeyRound,
   ShieldCheck,
+  RefreshCw,
 } from "lucide-react";
 import { UrlRecord } from "@/lib/types";
 import { sanitizeSlug, isValidUrl, normalizeUrl } from "@/lib/validation";
@@ -47,6 +48,7 @@ export default function ManageUrlsPage() {
   const [pinLoading, setPinLoading] = useState(false);
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinSuccess, setPinSuccess] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Hostname
   const [displayHost, setDisplayHost] = useState("zinks.netlify.app");
@@ -60,13 +62,19 @@ export default function ManageUrlsPage() {
         setDisplayHost("zinks.netlify.app");
       }
     }
-    fetchUrls();
+    fetchUrls(true);
+
+    // Auto-refresh click counts when user switches back to this tab
+    const onFocus = () => fetchUrls(false);
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
-  const fetchUrls = async () => {
+  const fetchUrls = async (showSpinner = true) => {
     try {
-      setLoading(true);
-      const res = await fetch("/api/urls");
+      if (showSpinner) setLoading(true);
+      setIsRefreshing(true);
+      const res = await fetch("/api/urls", { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         setUrls(data.urls || []);
@@ -74,7 +82,8 @@ export default function ManageUrlsPage() {
     } catch (err) {
       console.error("Failed to fetch URLs:", err);
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -245,6 +254,16 @@ export default function ManageUrlsPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+          <button
+            onClick={() => fetchUrls(false)}
+            disabled={isRefreshing}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-sm transition-all disabled:opacity-60"
+            title="Refresh clicks & links"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-500 ${isRefreshing ? "animate-spin text-blue-600" : ""}`} />
+            <span>Refresh</span>
+          </button>
+
           <button
             onClick={() => {
               setIsPinModalOpen(true);

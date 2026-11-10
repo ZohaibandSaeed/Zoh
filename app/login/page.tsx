@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, Suspense, KeyboardEvent, ClipboardEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, ArrowRight, Loader2, KeyRound } from "lucide-react";
+import { Lock, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 
 function LoginForm() {
   const [pin, setPin] = useState<string[]>(["", "", "", "", "", ""]);
@@ -172,8 +172,8 @@ function LoginForm() {
       </button>
 
       <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center gap-2 text-xs text-slate-400">
-        <KeyRound className="w-4 h-4" />
-        <span>Default Local PIN: 123456 (Set in .env.local)</span>
+        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+        <span>Protected Admin Area &bull; End-to-end encrypted</span>
       </div>
     </div>
   );
