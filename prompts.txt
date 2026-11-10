@@ -1,0 +1,17 @@
+hum aik project bna rahy hain jis ka name huga "Zoh" thek hai na. aur ma jis url pa issy live karo ga wo huga. zoh.netlify.app thek hai na. ya bara hi kmal aur useful project hai aik dam small sa project hai. khud ko read karo phir ma explain karo ka ya kya kam kary ga
+
+okay project ya hai ka ya tinyurl ki trha ka aik website hugi jo ka urls ko short krny ka liya use hugi. mean user yaha pa ay ga aur website ko login kary ga. hum 6 digit password rakhy gy login krny ka liya. aur phir ussy aik page show huga jaha sa wo apna tiny url bna skta hai actual url ko paste kary ga aur tinyurl paste kary ga aur hum uss sa mini url bna dygy aur phir jab user uss sa access kary tu proper kam kary mean proper redirect kary thek hai na. ya project hai. iss ma kuch extra features add krny hain like as aik aur page huga jis ma all urls hugy hum kisi ko bi del kar skty hain rename kar skty hain. bss ya simple sa kam hai. aur aik page aur huga. zoh.netlify.app/list jis ma sary urls ki list hugi ya without login hum access kar skty hain. jis ma zoh.netlify.app sa jitny bi urls bny gy hain sab ki list hugi. hum kisi ko bi click kar ka redirect kar skty hain thek hai na. idea smj aa raha hai ? login ka liya 6 digit password huga. aur jo database hum use kary gy wo neon db hugi aur jo frmawork hum use kary gy wo next js huga. thek hai na. ab a to z iss project ko read karo aur understand karo. phir mujy okay ma message du aur short ma btao ka kya project hai. 
+
+roman ma reply karo aur abi code start na karo 
+
+
+
+ya btao ka short url kasy bny ga aur kasy kam kary ga. short url user khud add kary ga. random generate nahi krna pehly db ma sa match karo ka already exist krta hai ya nahi phir agr nahi krta tu bna du 
+
+
+
+okay good iss compelte project ko 3 steps ma devide karo. aur har step ma kya kam krna hai uss ka proper plan aur code kya huga decide karo. aik dam professional aur industry standard code likhna hai. thek hai na. proper treeqa sa planing karo. aur aik file bnao steps.txt uss ma sary steps saii sa likho so that new vide developers ko idea hu saky 
+
+
+
+okay good ab step 1 complete kaor saii sa aur jab complete hu jay mujy btao phir hum next step kary gy 
