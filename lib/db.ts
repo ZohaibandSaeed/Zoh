@@ -2,15 +2,31 @@ import { neon } from "@neondatabase/serverless";
 import type { UrlRecord } from "./types";
 export type { UrlRecord } from "./types";
 
-const connectionString = process.env.DATABASE_URL;
+/**
+ * Dynamically retrieves the Neon SQL client using the live environment variable.
+ */
+export function getDb() {
+  const rawUrl = process.env.DATABASE_URL;
+  if (!rawUrl) return null;
 
-export const isDbReady = Boolean(
-  connectionString &&
-  !connectionString.includes("YOUR_PASSWORD") &&
-  connectionString.startsWith("postgres")
-);
+  const cleaned = rawUrl.trim().replace(/^["']|["']$/g, "");
+  if (!cleaned || cleaned.includes("YOUR_PASSWORD") || !cleaned.startsWith("postgres")) {
+    return null;
+  }
 
-// Fallback in-memory store for development/preview when Neon DB credentials are not yet configured
+  try {
+    return neon(cleaned);
+  } catch (err) {
+    console.error("[NEON_INIT_ERROR] Failed to create neon client:", err);
+    return null;
+  }
+}
+
+export function isDatabaseConfigured(): boolean {
+  return getDb() !== null;
+}
+
+// Fallback in-memory store ONLY for local dev when no DB is provided
 interface InMemoryUrl {
   id: number;
   original_url: string;
@@ -34,19 +50,16 @@ if (!globalForUrls.inMemoryUrls) {
   globalForUrls.idCounter = 1;
 }
 
-export const sql = isDbReady
-  ? neon(connectionString!)
-  : (async () => {
-    throw new Error(
-      "DATABASE_URL is not set or contains placeholders. Please set your Neon DB connection string."
-    );
-  }) as unknown as ReturnType<typeof neon>;
-
 /**
  * Initializes the database tables if they do not already exist.
  */
 export async function initDatabase(): Promise<boolean> {
-  if (!isDbReady) return false;
+  const sql = getDb();
+  if (!sql) {
+    console.warn("[DB_INIT] DATABASE_URL is not configured.");
+    return false;
+  }
+
   try {
     await sql`
       CREATE TABLE IF NOT EXISTS urls (
@@ -61,7 +74,6 @@ export async function initDatabase(): Promise<boolean> {
     await sql`
       CREATE INDEX IF NOT EXISTS idx_urls_slug ON urls(slug);
     `;
-    // Create settings table for dynamic admin configuration (e.g. admin_pin)
     await sql`
       CREATE TABLE IF NOT EXISTS settings (
         key VARCHAR(50) PRIMARY KEY,
@@ -77,8 +89,8 @@ export async function initDatabase(): Promise<boolean> {
     `;
     return true;
   } catch (error) {
-    console.error("Failed to initialize database tables:", error);
-    return false;
+    console.error("[DB_INIT_ERROR] Failed to initialize database tables:", error);
+    throw error;
   }
 }
 
@@ -86,7 +98,8 @@ export async function initDatabase(): Promise<boolean> {
  * Fetch a setting value from DB (or fallback store)
  */
 export async function getSetting(key: string): Promise<string | null> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       await initDatabase();
       const rows = (await sql`
@@ -94,8 +107,8 @@ export async function getSetting(key: string): Promise<string | null> {
       `) as unknown as { value: string }[];
       return rows && rows.length > 0 ? rows[0].value : null;
     } catch (err) {
-      console.error(`Error reading setting "${key}" from DB:`, err);
-      return null;
+      console.error(`[DB_ERROR] Error reading setting "${key}" from DB:`, err);
+      // Fallback
     }
   }
 
@@ -106,7 +119,8 @@ export async function getSetting(key: string): Promise<string | null> {
  * Update or insert a setting in DB (or fallback store)
  */
 export async function setSetting(key: string, value: string): Promise<boolean> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       await initDatabase();
       await sql`
@@ -117,8 +131,8 @@ export async function setSetting(key: string, value: string): Promise<boolean> {
       `;
       return true;
     } catch (err) {
-      console.error(`Error saving setting "${key}" in DB:`, err);
-      return false;
+      console.error(`[DB_ERROR] Error saving setting "${key}" in DB:`, err);
+      throw err;
     }
   }
 
@@ -133,7 +147,8 @@ export async function setSetting(key: string, value: string): Promise<boolean> {
  * Check if a slug already exists in DB
  */
 export async function isSlugAvailable(slug: string): Promise<boolean> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       await initDatabase();
       const records = (await sql`
@@ -141,12 +156,12 @@ export async function isSlugAvailable(slug: string): Promise<boolean> {
       `) as unknown as any[];
       return Array.isArray(records) && records.length === 0;
     } catch (err) {
-      console.error("Error checking slug in DB:", err);
-      return false;
+      console.error("[DB_ERROR] Error checking slug in DB:", err);
+      throw err;
     }
   }
 
-  // Fallback to in-memory store
+  // Fallback to in-memory store ONLY if no DB is configured
   const match = globalForUrls.inMemoryUrls?.find(
     (u) => u.slug.toLowerCase() === slug.toLowerCase()
   );
@@ -160,7 +175,8 @@ export async function createUrl(
   originalUrl: string,
   slug: string
 ): Promise<UrlRecord> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     await initDatabase();
     const rows = (await sql`
       INSERT INTO urls (original_url, slug)
@@ -170,7 +186,14 @@ export async function createUrl(
     return rows[0];
   }
 
-  // Fallback to in-memory store
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "DATABASE_URL is not set in Netlify Environment Variables. Please add your Neon connection string in Netlify site settings."
+    );
+  }
+
+  // Fallback to in-memory store ONLY if no DB is configured in development
+  console.warn("[DB_WARNING] DATABASE_URL is not set. Saving to temporary in-memory store.");
   const record: InMemoryUrl = {
     id: (globalForUrls.idCounter = (globalForUrls.idCounter || 0) + 1),
     original_url: originalUrl,
@@ -187,7 +210,8 @@ export async function createUrl(
  * Fetch a URL record by slug
  */
 export async function getUrlBySlug(slug: string): Promise<UrlRecord | null> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       const rows = (await sql`
         SELECT id, original_url, slug, clicks, created_at, updated_at
@@ -197,7 +221,7 @@ export async function getUrlBySlug(slug: string): Promise<UrlRecord | null> {
       `) as unknown as UrlRecord[];
       return rows && rows.length > 0 ? rows[0] : null;
     } catch (err) {
-      console.error("Error fetching slug from DB:", err);
+      console.error("[DB_ERROR] Error fetching slug from DB:", err);
       return null;
     }
   }
@@ -212,7 +236,8 @@ export async function getUrlBySlug(slug: string): Promise<UrlRecord | null> {
  * Increment click count for a given slug
  */
 export async function incrementClicks(slug: string): Promise<void> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       await sql`
         UPDATE urls
@@ -220,7 +245,7 @@ export async function incrementClicks(slug: string): Promise<void> {
         WHERE LOWER(slug) = LOWER(${slug});
       `;
     } catch (err) {
-      console.error("Error incrementing click count in DB:", err);
+      console.error("[DB_ERROR] Error incrementing click count in DB:", err);
     }
     return;
   }
@@ -238,7 +263,8 @@ export async function incrementClicks(slug: string): Promise<void> {
  * Fetch all URLs (sorted by newest first)
  */
 export async function getAllUrls(): Promise<UrlRecord[]> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       await initDatabase();
       const rows = (await sql`
@@ -248,8 +274,8 @@ export async function getAllUrls(): Promise<UrlRecord[]> {
       `) as unknown as UrlRecord[];
       return rows || [];
     } catch (err) {
-      console.error("Error fetching all URLs from DB:", err);
-      return [];
+      console.error("[DB_ERROR] Error fetching all URLs from DB:", err);
+      throw err;
     }
   }
 
@@ -260,7 +286,8 @@ export async function getAllUrls(): Promise<UrlRecord[]> {
  * Fetch a URL by its numeric ID
  */
 export async function getUrlById(id: number): Promise<UrlRecord | null> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       const rows = (await sql`
         SELECT id, original_url, slug, clicks, created_at, updated_at
@@ -270,7 +297,7 @@ export async function getUrlById(id: number): Promise<UrlRecord | null> {
       `) as unknown as UrlRecord[];
       return rows && rows.length > 0 ? rows[0] : null;
     } catch (err) {
-      console.error("Error fetching URL by id:", err);
+      console.error("[DB_ERROR] Error fetching URL by id:", err);
       return null;
     }
   }
@@ -286,7 +313,8 @@ export async function updateUrl(
   id: number,
   data: { original_url?: string; slug?: string }
 ): Promise<UrlRecord | null> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       const existing = await getUrlById(id);
       if (!existing) return null;
@@ -303,8 +331,8 @@ export async function updateUrl(
 
       return rows && rows.length > 0 ? rows[0] : null;
     } catch (err) {
-      console.error("Error updating URL in DB:", err);
-      return null;
+      console.error("[DB_ERROR] Error updating URL in DB:", err);
+      throw err;
     }
   }
 
@@ -322,15 +350,16 @@ export async function updateUrl(
  * Delete a URL by ID
  */
 export async function deleteUrl(id: number): Promise<boolean> {
-  if (isDbReady) {
+  const sql = getDb();
+  if (sql) {
     try {
       await sql`
         DELETE FROM urls WHERE id = ${id};
       `;
       return true;
     } catch (err) {
-      console.error("Error deleting URL from DB:", err);
-      return false;
+      console.error("[DB_ERROR] Error deleting URL from DB:", err);
+      throw err;
     }
   }
 
