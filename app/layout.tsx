@@ -3,8 +3,16 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://zoh.netlify.app"),
   title: "Zoh - Fast, Modern URL Shortener",
-  description: "Create and manage custom short URLs with speed and simplicity.",
+  description: "Create and manage custom short URLs with speed and simplicity on zoh.netlify.app",
+  openGraph: {
+    title: "Zoh - Custom URL Shortener",
+    description: "Create and manage custom short URLs with speed and simplicity.",
+    url: "https://zoh.netlify.app",
+    siteName: "Zoh",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
