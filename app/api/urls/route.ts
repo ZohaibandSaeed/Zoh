@@ -114,7 +114,7 @@ export async function POST(request: Request) {
     if (!available) {
       return NextResponse.json(
         {
-          error: `The short URL "zoh.netlify.app/${cleanedSlug}" already exists in the database. Please pick another name.`,
+          error: `The short URL "zinks.netlify.app/${cleanedSlug}" already exists in the database. Please pick another name.`,
         },
         { status: 409 }
       );

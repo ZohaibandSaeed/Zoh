@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const SESSION_COOKIE_NAME = "zoh_admin_session";
+const SESSION_COOKIE_NAME = "zinks_admin_session";
 
 function getSecretKey() {
-  const secret = process.env.SESSION_SECRET || "default_zoh_session_secret_change_me_32char";
+  const secret = process.env.SESSION_SECRET || "default_zinks_session_secret_change_me_32char";
   return new TextEncoder().encode(secret.padEnd(32, "!"));
 }
 

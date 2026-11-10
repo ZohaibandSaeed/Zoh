@@ -22,7 +22,7 @@ export default function PublicListPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [displayHost, setDisplayHost] = useState("zoh.netlify.app");
+  const [displayHost, setDisplayHost] = useState("zinks.netlify.app");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -30,7 +30,7 @@ export default function PublicListPage() {
       if (host.includes("localhost")) {
         setDisplayHost(host);
       } else {
-        setDisplayHost("zoh.netlify.app");
+        setDisplayHost("zinks.netlify.app");
       }
     }
     fetchPublicUrls();

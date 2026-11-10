@@ -14,7 +14,7 @@ export default function HomePage() {
       <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-center text-slate-900 max-w-3xl leading-[1.1]">
         Shorten, Brand &amp; Share with{" "}
         <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 bg-clip-text text-transparent">
-          Zoh
+          Zinks
         </span>
       </h1>
 

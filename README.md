@@ -1,6 +1,6 @@
-# ⚡ Zoh - Custom URL Shortener
+# ⚡ Zinks - Custom URL Shortener
 
-A minimalist, high-performance URL shortener built with **Next.js (App Router)**, **Neon Serverless PostgreSQL**, and **Tailwind CSS**, designed for deployment on Netlify at `zoh.netlify.app`.
+A minimalist, high-performance URL shortener built with **Next.js (App Router)**, **Neon Serverless PostgreSQL**, and **Tailwind CSS**, designed for deployment on Netlify at `zinks.netlify.app`.
 
 ---
 
@@ -10,9 +10,10 @@ A minimalist, high-performance URL shortener built with **Next.js (App Router)**
    - Access-controlled admin portal (`/login`) with a modern 6-box PIN input.
    - JWT sessions encrypted via `jose` and stored in secure HTTP-only cookies.
    - Next.js Edge Middleware protecting admin routes (`/dashboard`, `/manage`).
+   - Dynamic database PIN updates from the UI.
 
 2. **100% Custom Slugs & Duplicate Protection**
-   - User specifies their own short name (e.g. `zoh.netlify.app/myportfolio`).
+   - User specifies their own short name (e.g. `zinks.netlify.app/myportfolio`).
    - Neon PostgreSQL uniqueness verification before saving.
    - Reserved route protection (`list`, `login`, `api`, `manage`, etc.).
 
@@ -24,10 +25,10 @@ A minimalist, high-performance URL shortener built with **Next.js (App Router)**
 4. **URL Management Studio (`/manage`)**
    - Full CRUD: Rename custom slugs, update destination targets, or delete short links.
    - Real-time search filter and aggregate click counters.
-   - Confirmation modals for safety.
+   - "Change Passcode" security modal with database persistence.
 
 5. **Public Directory (`/list`)**
-   - **Accessible without login** at `zoh.netlify.app/list`.
+   - **Accessible without login** at `zinks.netlify.app/list`.
    - Complete directory of active short links.
    - Real-time search by keyword or target domain.
    - Instant click-to-redirect and one-click link copying.
@@ -58,10 +59,10 @@ DATABASE_URL="postgresql://neondb_owner:YOUR_PASSWORD@ep-sample-pooler.us-east-2
 ADMIN_PIN="123456"
 
 # JWT Secret (minimum 32 characters)
-SESSION_SECRET="zoh-super-secret-session-key-32-chars-long-local-env"
+SESSION_SECRET="zinks-super-secret-session-key-32-chars-long-local-env"
 
 # Base Application URL
-NEXT_PUBLIC_APP_URL="https://zoh.netlify.app"
+NEXT_PUBLIC_APP_URL="https://zinks.netlify.app"
 ```
 
 ### 2. Development
@@ -72,15 +73,11 @@ npm run dev
 
 Visit `http://localhost:3000`.
 
-### 3. Initialize Neon Database Table
-
-Once your `DATABASE_URL` is configured in `.env.local`, the `urls` table and index are automatically created on first request, or you can trigger `/api/setup-db`.
-
 ---
 
-## 🌐 Deploying to Netlify (`zoh.netlify.app`)
+## 🌐 Deploying to Netlify (`zinks.netlify.app`)
 
-1. Push this repository to GitHub / GitLab.
+1. Push this repository to GitHub: `git push origin main`.
 2. In Netlify dashboard, click **"Add new site"** &rarr; **"Import an existing project"**.
 3. Select your repository:
    - **Build command:** `npm run build`
@@ -89,7 +86,6 @@ Once your `DATABASE_URL` is configured in `.env.local`, the `urls` table and ind
    - `DATABASE_URL`: Your Neon DB connection string.
    - `ADMIN_PIN`: Your desired 6-digit passcode.
    - `SESSION_SECRET`: A secure random 32+ character string.
-   - `NEXT_PUBLIC_APP_URL`: `https://zoh.netlify.app`
-5. Under **Domain Management**, set your site name to `zoh` (giving you `zoh.netlify.app`).
+   - `NEXT_PUBLIC_APP_URL`: `https://zinks.netlify.app`
+5. Under **Domain Management**, set your site name to **`zinks`** (giving you `zinks.netlify.app`).
 6. Deploy!
-

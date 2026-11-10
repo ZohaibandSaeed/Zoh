@@ -2,11 +2,11 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { getSetting, setSetting } from "@/lib/db";
 
-const SESSION_COOKIE_NAME = "zoh_admin_session";
+const SESSION_COOKIE_NAME = "zinks_admin_session";
 const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 
 function getSecretKey() {
-  const secret = process.env.SESSION_SECRET || "default_zoh_session_secret_change_me_32char";
+  const secret = process.env.SESSION_SECRET || "default_zinks_session_secret_change_me_32char";
   return new TextEncoder().encode(secret.padEnd(32, "!"));
 }
 

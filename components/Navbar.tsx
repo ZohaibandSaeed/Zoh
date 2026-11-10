@@ -53,7 +53,7 @@ export default function Navbar() {
           </div>
           <div className="flex items-center">
             <span className="text-lg sm:text-xl font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-              Zoh
+              Zinks
             </span>
             <span className="hidden md:inline-block ml-1.5 text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
               Shortener

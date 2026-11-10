@@ -49,7 +49,7 @@ export default function ManageUrlsPage() {
   const [pinSuccess, setPinSuccess] = useState<string | null>(null);
 
   // Hostname
-  const [displayHost, setDisplayHost] = useState("zoh.netlify.app");
+  const [displayHost, setDisplayHost] = useState("zinks.netlify.app");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -57,7 +57,7 @@ export default function ManageUrlsPage() {
       if (host.includes("localhost")) {
         setDisplayHost(host);
       } else {
-        setDisplayHost("zoh.netlify.app");
+        setDisplayHost("zinks.netlify.app");
       }
     }
     fetchUrls();

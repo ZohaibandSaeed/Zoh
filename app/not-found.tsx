@@ -20,7 +20,7 @@ export default function NotFound() {
         </h1>
 
         <p className="text-sm text-slate-500 mt-2 mb-8 leading-relaxed">
-          The short URL you followed doesn&apos;t exist on <strong>Zoh</strong> or may have been deleted by its owner.
+          The short URL you followed doesn&apos;t exist on <strong>Zinks</strong> or may have been deleted by its owner.
         </p>
 
         <div className="flex flex-col gap-2.5">

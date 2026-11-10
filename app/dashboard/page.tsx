@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const [copied, setCopied] = useState(false);
 
   // App base URL for display
-  const [displayHost, setDisplayHost] = useState("zoh.netlify.app");
+  const [displayHost, setDisplayHost] = useState("zinks.netlify.app");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -43,7 +43,7 @@ export default function DashboardPage() {
       if (host.includes("localhost")) {
         setDisplayHost(host);
       } else {
-        setDisplayHost("zoh.netlify.app");
+        setDisplayHost("zinks.netlify.app");
       }
     }
   }, []);
@@ -280,7 +280,7 @@ export default function DashboardPage() {
             </label>
             <div className="flex rounded-xl border border-slate-200 bg-slate-50 focus-within:bg-white focus-within:border-blue-600 focus-within:ring-2 sm:focus-within:ring-4 focus-within:ring-blue-100 transition-all overflow-hidden">
               <span className="inline-flex items-center px-2.5 sm:px-4 border-r border-slate-200 bg-slate-100 text-slate-600 text-xs sm:text-sm font-mono select-none flex-shrink-0">
-                <span className="inline sm:hidden">zoh/</span>
+                <span className="inline sm:hidden">zinks/</span>
                 <span className="hidden sm:inline">{displayHost}/</span>
               </span>
               <input
